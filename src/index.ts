@@ -21,12 +21,6 @@ import type {
 } from '@echecs/position';
 
 // ---------------------------------------------------------------------------
-// Re-exports
-// ---------------------------------------------------------------------------
-
-export type { Move, Position } from '@echecs/position';
-
-// ---------------------------------------------------------------------------
 // SanMove type
 // ---------------------------------------------------------------------------
 
@@ -40,8 +34,6 @@ interface SanMove {
   rank: Rank | undefined;
   to: Square | undefined;
 }
-
-export type { SanMove };
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -80,26 +72,40 @@ function canAttack(
 ): boolean {
   const diff = toIndex - fromIndex;
   const tableIndex = diff + DIFF_OFFSET;
-  if (tableIndex < 0 || tableIndex >= 240) {return false;}
+  if (tableIndex < 0 || tableIndex >= 240) {
+    return false;
+  }
 
   const attackMask = ATTACKS[tableIndex] ?? 0;
   const pieceMask = PIECE_MASKS[pieceType] ?? 0;
-  if ((attackMask & pieceMask) === 0) {return false;}
+  if ((attackMask & pieceMask) === 0) {
+    return false;
+  }
 
   // Pawn direction check
   if (pieceType === 'p') {
-    if (color === 'w' && diff > 0) {return false;}
-    if (color === 'b' && diff < 0) {return false;}
+    if (color === 'w' && diff > 0) {
+      return false;
+    }
+    if (color === 'b' && diff < 0) {
+      return false;
+    }
   }
 
   const ray = RAYS[tableIndex] ?? 0;
-  if (ray === 0) {return true;} // Non-sliding
+  if (ray === 0) {
+    return true;
+  } // Non-sliding
 
   // Check for blockers
   let index = fromIndex + ray;
   while (index !== toIndex) {
-    if ((index & OFF_BOARD) !== 0) {return false;}
-    if (board[index] !== undefined) {return false;}
+    if ((index & OFF_BOARD) !== 0) {
+      return false;
+    }
+    if (board[index] !== undefined) {
+      return false;
+    }
     index += ray;
   }
   return true;
@@ -113,7 +119,9 @@ function applyMoveToBoard(
 ): Position {
   const board = new Map(position.board);
   const p = board.get(from);
-  if (p === undefined) {return position;}
+  if (p === undefined) {
+    return position;
+  }
 
   board.delete(from);
 
@@ -135,23 +143,31 @@ function applyMoveToBoard(
 
 function findKing(position: Position, color: Color): Square | undefined {
   for (const [square, p] of position.board) {
-    if (p.type === 'k' && p.color === color) {return square;}
+    if (p.type === 'k' && p.color === color) {
+      return square;
+    }
   }
   return undefined;
 }
 
 function isKingInCheck(position: Position, color: Color): boolean {
   const kingSquare = findKing(position, color);
-  if (kingSquare === undefined) {return false;}
+  if (kingSquare === undefined) {
+    return false;
+  }
 
   const board = boardFromMap(position.board);
   const targetIndex = squareToIndex(kingSquare);
   const opponent: Color = color === 'w' ? 'b' : 'w';
 
   for (const [sq, p] of position.board) {
-    if (p.color !== opponent) {continue;}
+    if (p.color !== opponent) {
+      continue;
+    }
     const fromIndex = squareToIndex(sq);
-    if (canAttack(board, fromIndex, targetIndex, p.type, p.color)) {return true;}
+    if (canAttack(board, fromIndex, targetIndex, p.type, p.color)) {
+      return true;
+    }
   }
   return false;
 }
@@ -160,7 +176,9 @@ function isKingInCheck(position: Position, color: Color): boolean {
 // parse()
 // ---------------------------------------------------------------------------
 
-export function parse(san: string): SanMove {
+function parse(san: string): SanMove;
+function parse(san: string, position: Position): Move;
+function parse(san: string, position?: Position): SanMove | Move {
   if (san.length === 0) {
     throw new RangeError('Empty SAN string');
   }
@@ -172,10 +190,10 @@ export function parse(san: string): SanMove {
   if (clean.startsWith('O-O-O')) {
     const check = clean.endsWith('#')
       ? 'checkmate'
-      : (clean.endsWith('+')
+      : clean.endsWith('+')
         ? 'check'
-        : undefined);
-    return {
+        : undefined;
+    const sanMove: SanMove = {
       capture: false,
       castle: 'queenside',
       check,
@@ -185,15 +203,21 @@ export function parse(san: string): SanMove {
       rank: undefined,
       to: undefined,
     };
+
+    if (position !== undefined) {
+      return resolve(sanMove, position);
+    }
+
+    return sanMove;
   }
 
   if (clean.startsWith('O-O')) {
     const check = clean.endsWith('#')
       ? 'checkmate'
-      : (clean.endsWith('+')
+      : clean.endsWith('+')
         ? 'check'
-        : undefined);
-    return {
+        : undefined;
+    const sanMove: SanMove = {
       capture: false,
       castle: 'kingside',
       check,
@@ -203,6 +227,12 @@ export function parse(san: string): SanMove {
       rank: undefined,
       to: undefined,
     };
+
+    if (position !== undefined) {
+      return resolve(sanMove, position);
+    }
+
+    return sanMove;
   }
 
   const match = SAN_REGEX.exec(clean);
@@ -222,8 +252,9 @@ export function parse(san: string): SanMove {
     checkString,
   ] = match;
 
-  const piece: PieceType =
-    pieceString ? (PIECE_LETTERS[pieceString] ?? 'p') : 'p';
+  const piece: PieceType = pieceString
+    ? (PIECE_LETTERS[pieceString] ?? 'p')
+    : 'p';
   const file =
     fromFileString && FILES_SET.has(fromFileString)
       ? (fromFileString as File)
@@ -239,9 +270,13 @@ export function parse(san: string): SanMove {
       ? PROMOTION_LETTERS[promoString]
       : undefined;
   const check =
-    checkString === '#' ? 'checkmate' : (checkString === '+' ? 'check' : undefined);
+    checkString === '#'
+      ? 'checkmate'
+      : checkString === '+'
+        ? 'check'
+        : undefined;
 
-  return {
+  const sanMove: SanMove = {
     capture,
     castle: undefined,
     check,
@@ -251,13 +286,19 @@ export function parse(san: string): SanMove {
     rank,
     to,
   };
+
+  if (position !== undefined) {
+    return resolve(sanMove, position);
+  }
+
+  return sanMove;
 }
 
 // ---------------------------------------------------------------------------
 // resolve()
 // ---------------------------------------------------------------------------
 
-export function resolve(move: SanMove, position: Position): Move {
+function resolve(move: SanMove, position: Position): Move {
   // Castling
   if (move.castle !== undefined) {
     const backRank = position.turn === 'w' ? '1' : '8';
@@ -278,9 +319,15 @@ export function resolve(move: SanMove, position: Position): Move {
   const candidates: Square[] = [];
 
   for (const [square, p] of position.board) {
-    if (p.type !== move.piece || p.color !== position.turn) {continue;}
-    if (move.file !== undefined && square[0] !== move.file) {continue;}
-    if (move.rank !== undefined && square[1] !== move.rank) {continue;}
+    if (p.type !== move.piece || p.color !== position.turn) {
+      continue;
+    }
+    if (move.file !== undefined && square[0] !== move.file) {
+      continue;
+    }
+    if (move.rank !== undefined && square[1] !== move.rank) {
+      continue;
+    }
 
     const fromIndex = squareToIndex(square);
 
@@ -305,7 +352,9 @@ export function resolve(move: SanMove, position: Position): Move {
         }
       } else {
         // Pawn push: must be on same file
-        if (toFile !== fromFile) {continue;}
+        if (toFile !== fromFile) {
+          continue;
+        }
         // One step forward
         if (toRank - fromRank !== -direction) {
           // Or two steps from starting rank
@@ -331,7 +380,9 @@ export function resolve(move: SanMove, position: Position): Move {
 
     // Verify move doesn't leave own king in check
     const after = applyMoveToBoard(position, square, move.to, move.promotion);
-    if (isKingInCheck(after, position.turn)) {continue;}
+    if (isKingInCheck(after, position.turn)) {
+      continue;
+    }
 
     candidates.push(square);
   }
@@ -369,7 +420,7 @@ const PIECE_TO_LETTER: Record<PieceType, string> = {
   r: 'R',
 };
 
-export function stringify(move: Move, position: Position): string {
+function stringify(move: Move, position: Position): string {
   const p = position.board.get(move.from);
   if (p === undefined) {
     throw new RangeError(`No piece on ${move.from}`);
@@ -382,9 +433,9 @@ export function stringify(move: Move, position: Position): string {
     if (fileDiff === 2) {
       const after = applyMoveToBoard(position, move.from, move.to);
       const suffix = isKingInCheck(after, position.turn === 'w' ? 'b' : 'w')
-        ? (isCheckmate(after)
+        ? isCheckmate(after)
           ? '#'
-          : '+')
+          : '+'
         : '';
       return `O-O${suffix}`;
     }
@@ -392,9 +443,9 @@ export function stringify(move: Move, position: Position): string {
     if (fileDiff === -2) {
       const after = applyMoveToBoard(position, move.from, move.to);
       const suffix = isKingInCheck(after, position.turn === 'w' ? 'b' : 'w')
-        ? (isCheckmate(after)
+        ? isCheckmate(after)
           ? '#'
-          : '+')
+          : '+'
         : '';
       return `O-O-O${suffix}`;
     }
@@ -413,13 +464,22 @@ export function stringify(move: Move, position: Position): string {
     const ambiguous: Square[] = [];
 
     for (const [sq, other] of position.board) {
-      if (sq === move.from || other.type !== p.type || other.color !== p.color)
-        {continue;}
+      if (
+        sq === move.from ||
+        other.type !== p.type ||
+        other.color !== p.color
+      ) {
+        continue;
+      }
       const fromIndex = squareToIndex(sq);
-      if (!canAttack(board, fromIndex, toIndex, p.type, p.color)) {continue;}
+      if (!canAttack(board, fromIndex, toIndex, p.type, p.color)) {
+        continue;
+      }
       // Check it's a legal move (doesn't leave king in check)
       const after = applyMoveToBoard(position, sq, move.to);
-      if (!isKingInCheck(after, position.turn)) {ambiguous.push(sq);}
+      if (!isKingInCheck(after, position.turn)) {
+        ambiguous.push(sq);
+      }
     }
 
     if (ambiguous.length > 0) {
@@ -453,24 +513,34 @@ export function stringify(move: Move, position: Position): string {
 }
 
 function isCheckmate(position: Position): boolean {
-  if (!isKingInCheck(position, position.turn)) {return false;}
+  if (!isKingInCheck(position, position.turn)) {
+    return false;
+  }
 
   // Try all moves for the side to move — if any gets out of check, not checkmate
   for (const [from, p] of position.board) {
-    if (p.color !== position.turn) {continue;}
+    if (p.color !== position.turn) {
+      continue;
+    }
     // Try each possible destination (simplified: try all squares)
     for (let index = 0; index <= 119; index++) {
-      if (index & OFF_BOARD) {continue;}
+      if (index & OFF_BOARD) {
+        continue;
+      }
       const toIndex = index;
       const fromIndex = squareToIndex(from);
       const board = boardFromMap(position.board);
-      if (!canAttack(board, fromIndex, toIndex, p.type, p.color)) {continue;}
+      if (!canAttack(board, fromIndex, toIndex, p.type, p.color)) {
+        continue;
+      }
       const target = position.board.get(
         [...position.board.keys()].find(
           (sq) => squareToIndex(sq) === toIndex,
         ) ?? ('' as Square),
       );
-      if (target?.color === position.turn) {continue;}
+      if (target?.color === position.turn) {
+        continue;
+      }
 
       // Find target square
       let toSquare: Square | undefined;
@@ -490,14 +560,24 @@ function isCheckmate(position: Position): boolean {
               break;
             }
           }
-          if (toSquare !== undefined) {break;}
+          if (toSquare !== undefined) {
+            break;
+          }
         }
       }
-      if (toSquare === undefined) {continue;}
+      if (toSquare === undefined) {
+        continue;
+      }
 
       const after = applyMoveToBoard(position, from, toSquare);
-      if (!isKingInCheck(after, position.turn)) {return false;}
+      if (!isKingInCheck(after, position.turn)) {
+        return false;
+      }
     }
   }
   return true;
 }
+
+export type { Move, Position } from '@echecs/position';
+export type { SanMove };
+export { parse, resolve, stringify };
