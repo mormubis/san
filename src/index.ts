@@ -1,3 +1,4 @@
+import { Position } from '@echecs/position';
 import {
   ATTACKS,
   DIFF_OFFSET,
@@ -8,13 +9,13 @@ import {
   squareToIndex,
 } from '@echecs/position/internal';
 
+
 import type {
   Color,
   File,
   Move,
   Piece,
   PieceType,
-  Position,
   PromotionPieceType,
   Rank,
   Square,
@@ -117,7 +118,7 @@ function applyMoveToBoard(
   to: Square,
   promotion?: PromotionPieceType,
 ): Position {
-  const board = new Map(position.board);
+  const board = position.pieces();
   const p = board.get(from);
   if (p === undefined) {
     return position;
@@ -138,11 +139,15 @@ function applyMoveToBoard(
   board.set(to, finalPiece);
 
   const turn: Color = position.turn === 'w' ? 'b' : 'w';
-  return { ...position, board, enPassantSquare: undefined, turn };
+  return new Position(board, {
+    castlingRights: position.castlingRights,
+    enPassantSquare: undefined,
+    turn,
+  });
 }
 
 function findKing(position: Position, color: Color): Square | undefined {
-  for (const [square, p] of position.board) {
+  for (const [square, p] of position.pieces()) {
     if (p.type === 'k' && p.color === color) {
       return square;
     }
@@ -156,11 +161,11 @@ function isKingInCheck(position: Position, color: Color): boolean {
     return false;
   }
 
-  const board = boardFromMap(position.board);
+  const board = boardFromMap(position.pieces());
   const targetIndex = squareToIndex(kingSquare);
   const opponent: Color = color === 'w' ? 'b' : 'w';
 
-  for (const [sq, p] of position.board) {
+  for (const [sq, p] of position.pieces()) {
     if (p.color !== opponent) {
       continue;
     }
@@ -190,9 +195,9 @@ function parse(san: string, position?: Position): SanMove | Move {
   if (clean.startsWith('O-O-O')) {
     const check = clean.endsWith('#')
       ? 'checkmate'
-      : clean.endsWith('+')
+      : (clean.endsWith('+')
         ? 'check'
-        : undefined;
+        : undefined);
     const sanMove: SanMove = {
       capture: false,
       castle: 'queenside',
@@ -214,9 +219,9 @@ function parse(san: string, position?: Position): SanMove | Move {
   if (clean.startsWith('O-O')) {
     const check = clean.endsWith('#')
       ? 'checkmate'
-      : clean.endsWith('+')
+      : (clean.endsWith('+')
         ? 'check'
-        : undefined;
+        : undefined);
     const sanMove: SanMove = {
       capture: false,
       castle: 'kingside',
@@ -272,9 +277,9 @@ function parse(san: string, position?: Position): SanMove | Move {
   const check =
     checkString === '#'
       ? 'checkmate'
-      : checkString === '+'
+      : (checkString === '+'
         ? 'check'
-        : undefined;
+        : undefined);
 
   const sanMove: SanMove = {
     capture,
@@ -315,10 +320,10 @@ function resolve(move: SanMove, position: Position): Move {
   }
 
   const toIndex = squareToIndex(move.to);
-  const board = boardFromMap(position.board);
+  const board = boardFromMap(position.pieces());
   const candidates: Square[] = [];
 
-  for (const [square, p] of position.board) {
+  for (const [square, p] of position.pieces()) {
     if (p.type !== move.piece || p.color !== position.turn) {
       continue;
     }
@@ -421,7 +426,7 @@ const PIECE_TO_LETTER: Record<PieceType, string> = {
 };
 
 function stringify(move: Move, position: Position): string {
-  const p = position.board.get(move.from);
+  const p = position.piece(move.from);
   if (p === undefined) {
     throw new RangeError(`No piece on ${move.from}`);
   }
@@ -433,9 +438,9 @@ function stringify(move: Move, position: Position): string {
     if (fileDiff === 2) {
       const after = applyMoveToBoard(position, move.from, move.to);
       const suffix = isKingInCheck(after, position.turn === 'w' ? 'b' : 'w')
-        ? isCheckmate(after)
+        ? (isCheckmate(after)
           ? '#'
-          : '+'
+          : '+')
         : '';
       return `O-O${suffix}`;
     }
@@ -443,9 +448,9 @@ function stringify(move: Move, position: Position): string {
     if (fileDiff === -2) {
       const after = applyMoveToBoard(position, move.from, move.to);
       const suffix = isKingInCheck(after, position.turn === 'w' ? 'b' : 'w')
-        ? isCheckmate(after)
+        ? (isCheckmate(after)
           ? '#'
-          : '+'
+          : '+')
         : '';
       return `O-O-O${suffix}`;
     }
@@ -453,17 +458,17 @@ function stringify(move: Move, position: Position): string {
 
   const pieceString = PIECE_TO_LETTER[p.type];
   const isCapture =
-    position.board.has(move.to) ||
+    position.piece(move.to) !== undefined ||
     (p.type === 'p' && move.to === position.enPassantSquare);
 
   // Determine disambiguation
   let disambig = '';
   if (p.type !== 'p') {
     const toIndex = squareToIndex(move.to);
-    const board = boardFromMap(position.board);
+    const board = boardFromMap(position.pieces());
     const ambiguous: Square[] = [];
 
-    for (const [sq, other] of position.board) {
+    for (const [sq, other] of position.pieces()) {
       if (
         sq === move.from ||
         other.type !== p.type ||
@@ -518,7 +523,7 @@ function isCheckmate(position: Position): boolean {
   }
 
   // Try all moves for the side to move — if any gets out of check, not checkmate
-  for (const [from, p] of position.board) {
+  for (const [from, p] of position.pieces()) {
     if (p.color !== position.turn) {
       continue;
     }
@@ -529,12 +534,12 @@ function isCheckmate(position: Position): boolean {
       }
       const toIndex = index;
       const fromIndex = squareToIndex(from);
-      const board = boardFromMap(position.board);
+      const board = boardFromMap(position.pieces());
       if (!canAttack(board, fromIndex, toIndex, p.type, p.color)) {
         continue;
       }
-      const target = position.board.get(
-        [...position.board.keys()].find(
+      const target = position.piece(
+        [...position.pieces().keys()].find(
           (sq) => squareToIndex(sq) === toIndex,
         ) ?? ('' as Square),
       );
@@ -544,7 +549,7 @@ function isCheckmate(position: Position): boolean {
 
       // Find target square
       let toSquare: Square | undefined;
-      for (const sq of position.board.keys()) {
+      for (const sq of position.pieces().keys()) {
         if (squareToIndex(sq) === toIndex) {
           toSquare = sq;
           break;
