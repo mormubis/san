@@ -1,7 +1,7 @@
 {
   "author": "Adrian de la Rosa <adrian@delarosab.me>",
   "bugs": {
-    "url": "https://github.com/mormubis/san/issues"
+    "url": "https://github.com/echecsjs/san/issues"
   },
   "dependencies": {
     "@echecs/position": "^3.0.3"
@@ -42,7 +42,7 @@
     "README.md",
     "CHANGELOG.md"
   ],
-  "homepage": "https://github.com/mormubis/san#readme",
+  "homepage": "https://github.com/echecsjs/san#readme",
   "keywords": [
     "chess",
     "move",
@@ -59,7 +59,7 @@
   "name": "@echecs/san",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mormubis/san.git"
+    "url": "https://github.com/echecsjs/san.git"
   },
   "scripts": {
     "build": "tsdown",
