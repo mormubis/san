@@ -1,11 +1,12 @@
 # @echecs/san
 
 Parse, resolve, and stringify SAN (Standard Algebraic Notation) chess moves.
-Strict TypeScript.
+Strict TypeScript. Implements the notation defined in
+[FIDE Laws of Chess, Appendix C](https://handbook.fide.com/chapter/E012023).
 
 ## Installation
 
-```
+```bash
 npm install @echecs/san
 ```
 
@@ -79,10 +80,11 @@ interface Move {
 }
 ```
 
-`Position` is re-exported from `@echecs/position` for convenience:
+`Position` is re-exported from `@echecs/position` for convenience.
+`PromotionPieceType` is the union of piece types a pawn can promote to:
 
 ```typescript
-import type { Move, Position, PromotionPieceType } from '@echecs/san';
+import type { Move, Position, PromotionPieceType, SanMove } from '@echecs/san';
 ```
 
 ## Errors
