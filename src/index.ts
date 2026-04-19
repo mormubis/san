@@ -75,6 +75,25 @@ function applyMoveToBoard(
     [to, promotion ? { color: piece.color, type: promotion } : piece],
   ];
 
+  // Castling — move the rook alongside the king
+  if (piece.type === 'king') {
+    const fileDiff = (to.codePointAt(0) ?? 0) - (from.codePointAt(0) ?? 0);
+    const rank = from[1] as string;
+    if (fileDiff === 2) {
+      // Kingside: rook h→f
+      changes.push(
+        [`h${rank}` as Square, undefined],
+        [`f${rank}` as Square, { color: piece.color, type: 'rook' }],
+      );
+    } else if (fileDiff === -2) {
+      // Queenside: rook a→d
+      changes.push(
+        [`a${rank}` as Square, undefined],
+        [`d${rank}` as Square, { color: piece.color, type: 'rook' }],
+      );
+    }
+  }
+
   // En passant capture — remove the captured pawn
   if (piece.type === 'pawn' && to === position.enPassantSquare) {
     const epRank =
@@ -300,6 +319,10 @@ const PROMOTION_TO_LETTER: Record<PromotionPieceType, string> = {
   rook: 'R',
 };
 
+function checkSuffix(position: Position): string {
+  return position.isCheck ? (isCheckmate(position) ? '#' : '+') : '';
+}
+
 function stringify(move: Move, position: Position): string {
   const piece = position.at(move.from);
   if (piece === undefined) {
@@ -312,14 +335,12 @@ function stringify(move: Move, position: Position): string {
       (move.to.codePointAt(0) ?? 0) - (move.from.codePointAt(0) ?? 0);
     if (fileDiff === 2) {
       const after = applyMoveToBoard(position, move.from, move.to);
-      const suffix = after.isCheck ? (isCheckmate(after) ? '#' : '+') : '';
-      return `O-O${suffix}`;
+      return `O-O${checkSuffix(after)}`;
     }
 
     if (fileDiff === -2) {
       const after = applyMoveToBoard(position, move.from, move.to);
-      const suffix = after.isCheck ? (isCheckmate(after) ? '#' : '+') : '';
-      return `O-O-O${suffix}`;
+      return `O-O-O${checkSuffix(after)}`;
     }
   }
 
@@ -371,10 +392,7 @@ function stringify(move: Move, position: Position): string {
 
   // Apply move and check for check/checkmate
   const after = applyMoveToBoard(position, move.from, move.to, move.promotion);
-  let suffix = '';
-  if (after.isCheck) {
-    suffix = isCheckmate(after) ? '#' : '+';
-  }
+  const suffix = checkSuffix(after);
 
   return `${pieceString}${disambig}${captureString}${move.to}${promoString}${suffix}`;
 }

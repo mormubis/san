@@ -151,6 +151,14 @@ describe('parse — castling', () => {
   it('parses castling with check', () => {
     expect(parse('O-O+').check).toBe('check');
   });
+
+  it('parses kingside castling with checkmate', () => {
+    expect(parse('O-O#').check).toBe('checkmate');
+  });
+
+  it('parses queenside castling with checkmate', () => {
+    expect(parse('O-O-O#').check).toBe('checkmate');
+  });
 });
 
 describe('parse — errors', () => {
@@ -227,6 +235,24 @@ describe('resolve — castling', () => {
     const move = resolve(parse('O-O-O'), pos);
     expect(move.from).toBe('e1');
     expect(move.to).toBe('c1');
+  });
+
+  it('resolves O-O for black', () => {
+    const pos = toPosition(
+      'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1',
+    );
+    const move = resolve(parse('O-O'), pos);
+    expect(move.from).toBe('e8');
+    expect(move.to).toBe('g8');
+  });
+
+  it('resolves O-O-O for black', () => {
+    const pos = toPosition(
+      'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R b KQkq - 0 1',
+    );
+    const move = resolve(parse('O-O-O'), pos);
+    expect(move.from).toBe('e8');
+    expect(move.to).toBe('c8');
   });
 });
 
@@ -369,6 +395,69 @@ describe('stringify — disambiguation', () => {
     expect(stringify({ from: 'd1', promotion: undefined, to: 'b2' }, pos)).toBe(
       'N1b2',
     );
+  });
+});
+
+describe('stringify — castling', () => {
+  it('stringifies kingside castling', () => {
+    const pos = toPosition(
+      'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1',
+    );
+    expect(stringify({ from: 'e1', promotion: undefined, to: 'g1' }, pos)).toBe(
+      'O-O',
+    );
+  });
+
+  it('stringifies queenside castling', () => {
+    const pos = toPosition(
+      'r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1',
+    );
+    expect(stringify({ from: 'e1', promotion: undefined, to: 'c1' }, pos)).toBe(
+      'O-O-O',
+    );
+  });
+
+  it('stringifies kingside castling with check', () => {
+    // White castles O-O, rook lands on f1 giving check to black king on f8
+    const pos = toPosition('5k2/8/8/8/8/8/8/R3K2R w K - 0 1');
+    expect(stringify({ from: 'e1', promotion: undefined, to: 'g1' }, pos)).toBe(
+      'O-O+',
+    );
+  });
+
+  it('stringifies queenside castling with check', () => {
+    // White castles O-O-O, rook lands on d1 giving check to black king on d8
+    const pos = toPosition('3k4/8/8/8/8/8/8/R3K2R w Q - 0 1');
+    expect(stringify({ from: 'e1', promotion: undefined, to: 'c1' }, pos)).toBe(
+      'O-O-O+',
+    );
+  });
+
+  it('stringifies kingside castling with checkmate', () => {
+    // White queen d8, king e1, rook h1. After O-O: rook f1 checks king f8.
+    // Queen d8 covers e8/e7/g8/h8, pawns g7/h7 block escape → checkmate.
+    const pos = toPosition('3Q1k2/6pp/8/8/8/8/8/4K2R w K - 0 1');
+    expect(stringify({ from: 'e1', promotion: undefined, to: 'g1' }, pos)).toBe(
+      'O-O#',
+    );
+  });
+
+  it('stringifies queenside castling with checkmate', () => {
+    // White queen e1-side, king e1, rook a1. After O-O-O: rook d1 checks king d8.
+    // Need all d8 king escape squares covered.
+    // Queen on f8 covers e8/e7, rook d1 covers d-file, pawns block c7/c8.
+    const pos = toPosition('3k1Q2/2pp4/8/8/8/8/8/R3K3 w Q - 0 1');
+    expect(stringify({ from: 'e1', promotion: undefined, to: 'c1' }, pos)).toBe(
+      'O-O-O#',
+    );
+  });
+});
+
+describe('stringify — errors', () => {
+  it('throws RangeError when no piece on source square', () => {
+    expect(() =>
+      stringify({ from: 'e4', promotion: undefined, to: 'e5' }, START),
+    ).toThrow(RangeError);
   });
 });
 
