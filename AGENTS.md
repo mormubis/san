@@ -21,9 +21,9 @@ Notation (SAN) chess moves.
 
 | Function               | Input                   | Output     | Throws                                |
 | ---------------------- | ----------------------- | ---------- | ------------------------------------- |
-| `parse(san)`           | SAN string              | `SanMove`  | `RangeError` on empty/invalid input   |
+| `parse(san)`           | SAN string              | `SAN`      | `RangeError` on empty/invalid input   |
 | `parse(san, position)` | SAN string + `Position` | `Move`     | `RangeError` on empty/invalid/illegal |
-| `resolve()`            | `SanMove` + `Position`  | `Move`     | `RangeError` on illegal/ambiguous     |
+| `resolve()`            | `SAN` + `Position`      | `Move`     | `RangeError` on illegal/ambiguous     |
 | `stringify()`          | `Move` + `Position`     | SAN string | `RangeError` if no piece on square    |
 
 The entire implementation lives in a single source file: `src/index.ts`.
@@ -55,14 +55,6 @@ checks, assertion functions) unless there is an explicit trust boundary.
 
 - **ESM-only** — the package ships only ESM. Do not add a CJS build.
 
-### `@echecs/position/internal`
-
-`canAttack` and `isKingInCheck` use the 0x88 lookup tables (`ATTACKS`, `RAYS`,
-`PIECE_MASKS`, `DIFF_OFFSET`, `OFF_BOARD`) and the `boardFromMap` /
-`squareToIndex` helpers from `@echecs/position/internal`. This is the only
-package besides `@echecs/game` that may use the `./internal` export condition.
-Do not use it in application code.
-
 ### SAN regex
 
 The regex at the top of `src/index.ts` parses the full SAN grammar in one pass.
@@ -75,13 +67,11 @@ Regex group order:
 ### `resolve()` logic
 
 1. Iterate all pieces of the active color matching `move.piece`.
-2. Apply file/rank disambiguation filters.
-3. For pawns: validate direction and distance separately for pushes vs. captures
-   (the generic `canAttack` table does not model pawn pushes).
-4. For all other pieces: use `canAttack` with the 0x88 tables.
-5. Apply the move with `applyMoveToBoard` and discard candidates that leave the
-   own king in check (`isKingInCheck`).
-6. Exactly one candidate must remain — zero or many both throw `RangeError`.
+2. Apply `from` disambiguation filter (file, rank, or full square).
+3. Use `position.reach()` to check if the piece can reach the target square.
+4. Apply the move with `applyMoveToBoard` and discard candidates that leave the
+   own king in check.
+5. Exactly one candidate must remain — zero or many both throw `RangeError`.
 
 ### `stringify()` disambiguation
 
@@ -93,8 +83,8 @@ When multiple pieces of the same type can reach the destination:
 
 ### `isCheckmate()` simplification
 
-The internal `isCheckmate` helper iterates all 0x88 indices and attempts every
-`canAttack`-reachable move. It is intentionally simple (not perft- optimised)
+The internal `isCheckmate` helper iterates all pieces and attempts every
+`reach()`-reachable move. It is intentionally simple (not perft-optimised)
 because it is only called from `stringify()` to append `#`.
 
 ---
