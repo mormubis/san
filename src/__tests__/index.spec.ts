@@ -28,8 +28,9 @@ describe('parse — pawn moves', () => {
     expect(move.piece).toBe('pawn');
     expect(move.to).toBe('e4');
     expect(move.capture).toBe(false);
-    expect(move.castle).toBeUndefined();
-    expect(move.check).toBeUndefined();
+    expect(move.castling).toBe(false);
+    expect(move.check).toBe(false);
+    expect(move.checkmate).toBe(false);
     expect(move.promotion).toBeUndefined();
   });
 
@@ -37,7 +38,7 @@ describe('parse — pawn moves', () => {
     const move = parse('exd5');
     expect(move.piece).toBe('pawn');
     expect(move.capture).toBe(true);
-    expect(move.file).toBe('e');
+    expect(move.from).toBe('e');
     expect(move.to).toBe('d5');
   });
 
@@ -52,7 +53,8 @@ describe('parse — pawn moves', () => {
     const move = parse('exd8=Q#');
     expect(move.capture).toBe(true);
     expect(move.promotion).toBe('queen');
-    expect(move.check).toBe('checkmate');
+    expect(move.check).toBe(false);
+    expect(move.checkmate).toBe(true);
   });
 });
 
@@ -74,50 +76,63 @@ describe('parse — piece moves', () => {
   it('parses file disambiguation', () => {
     const move = parse('Nbd7');
     expect(move.piece).toBe('knight');
-    expect(move.file).toBe('b');
+    expect(move.from).toBe('b');
     expect(move.to).toBe('d7');
   });
 
   it('parses rank disambiguation', () => {
     const move = parse('N2d4');
     expect(move.piece).toBe('knight');
-    expect(move.rank).toBe('2');
+    expect(move.from).toBe('2');
     expect(move.to).toBe('d4');
   });
 });
 
 describe('parse — check and checkmate', () => {
   it('parses check suffix', () => {
-    expect(parse('Nf3+').check).toBe('check');
+    const move = parse('Nf3+');
+    expect(move.check).toBe(true);
+    expect(move.checkmate).toBe(false);
   });
 
   it('parses checkmate suffix', () => {
-    expect(parse('Qxh7#').check).toBe('checkmate');
+    const move = parse('Qxh7#');
+    expect(move.check).toBe(false);
+    expect(move.checkmate).toBe(true);
   });
 });
 
 describe('parse — castling', () => {
   it('parses kingside castling', () => {
     const move = parse('O-O');
-    expect(move.castle).toBe('kingside');
+    expect(move.castling).toBe(true);
+    expect(move.long).toBe(false);
     expect(move.to).toBeUndefined();
     expect(move.piece).toBe('king');
   });
 
   it('parses queenside castling', () => {
-    expect(parse('O-O-O').castle).toBe('queenside');
+    const move = parse('O-O-O');
+    expect(move.castling).toBe(true);
+    expect(move.long).toBe(true);
   });
 
   it('parses castling with check', () => {
-    expect(parse('O-O+').check).toBe('check');
+    const move = parse('O-O+');
+    expect(move.check).toBe(true);
+    expect(move.checkmate).toBe(false);
   });
 
   it('parses kingside castling with checkmate', () => {
-    expect(parse('O-O#').check).toBe('checkmate');
+    const move = parse('O-O#');
+    expect(move.check).toBe(false);
+    expect(move.checkmate).toBe(true);
   });
 
   it('parses queenside castling with checkmate', () => {
-    expect(parse('O-O-O#').check).toBe('checkmate');
+    const move = parse('O-O-O#');
+    expect(move.check).toBe(false);
+    expect(move.checkmate).toBe(true);
   });
 });
 

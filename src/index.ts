@@ -1,7 +1,7 @@
 import type {
+  Piece as BoardPiece,
   Color,
   File,
-  Piece,
   PieceType,
   Position,
   Rank,
@@ -12,22 +12,27 @@ import type {
 // Types owned by this package
 // ---------------------------------------------------------------------------
 
-type PromotionPieceType = 'bishop' | 'knight' | 'queen' | 'rook';
+type Disambiguation = File | Rank | Square;
+
+type Piece = PieceType;
+
+type PromotionPiece = 'bishop' | 'knight' | 'queen' | 'rook';
 
 interface Move {
   from: Square;
-  promotion?: PromotionPieceType;
+  promotion?: PromotionPiece;
   to: Square;
 }
 
-interface SanMove {
+interface SAN {
   capture: boolean;
-  castle: 'kingside' | 'queenside' | undefined;
-  check: 'check' | 'checkmate' | undefined;
-  file: File | undefined;
-  piece: PieceType;
-  promotion: PromotionPieceType | undefined;
-  rank: Rank | undefined;
+  castling: boolean;
+  check: boolean;
+  checkmate: boolean;
+  from: Disambiguation | undefined;
+  long: boolean;
+  piece: Piece;
+  promotion: PromotionPiece | undefined;
   to: Square | undefined;
 }
 
@@ -35,7 +40,7 @@ interface SanMove {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-const PIECE_LETTERS: Record<string, PieceType> = {
+const PIECE_LETTERS: Record<string, Piece> = {
   B: 'bishop',
   K: 'king',
   N: 'knight',
@@ -43,7 +48,7 @@ const PIECE_LETTERS: Record<string, PieceType> = {
   R: 'rook',
 };
 
-const PROMOTION_LETTERS: Record<string, PromotionPieceType> = {
+const PROMOTION_LETTERS: Record<string, PromotionPiece> = {
   B: 'bishop',
   N: 'knight',
   Q: 'queen',
@@ -63,14 +68,14 @@ function applyMoveToBoard(
   position: Position,
   from: Square,
   to: Square,
-  promotion?: PromotionPieceType,
+  promotion?: PromotionPiece,
 ): Position {
   const piece = position.at(from);
   if (piece === undefined) {
     return position;
   }
 
-  const changes: [Square, Piece | undefined][] = [
+  const changes: [Square, BoardPiece | undefined][] = [
     [from, undefined],
     [to, promotion ? { color: piece.color, type: promotion } : piece],
   ];
@@ -111,9 +116,9 @@ function applyMoveToBoard(
 // parse()
 // ---------------------------------------------------------------------------
 
-function parse(san: string): SanMove;
+function parse(san: string): SAN;
 function parse(san: string, position: Position): Move;
-function parse(san: string, position?: Position): SanMove | Move {
+function parse(san: string, position?: Position): SAN | Move {
   if (san.length === 0) {
     throw new RangeError('Empty SAN string');
   }
@@ -123,19 +128,15 @@ function parse(san: string, position?: Position): SanMove | Move {
 
   // Castling
   if (clean.startsWith('O-O-O')) {
-    const check = clean.endsWith('#')
-      ? 'checkmate'
-      : clean.endsWith('+')
-        ? 'check'
-        : undefined;
-    const sanMove: SanMove = {
+    const sanMove: SAN = {
       capture: false,
-      castle: 'queenside',
-      check,
-      file: undefined,
+      castling: true,
+      check: clean.endsWith('+'),
+      checkmate: clean.endsWith('#'),
+      from: undefined,
+      long: true,
       piece: 'king',
       promotion: undefined,
-      rank: undefined,
       to: undefined,
     };
 
@@ -147,19 +148,15 @@ function parse(san: string, position?: Position): SanMove | Move {
   }
 
   if (clean.startsWith('O-O')) {
-    const check = clean.endsWith('#')
-      ? 'checkmate'
-      : clean.endsWith('+')
-        ? 'check'
-        : undefined;
-    const sanMove: SanMove = {
+    const sanMove: SAN = {
       capture: false,
-      castle: 'kingside',
-      check,
-      file: undefined,
+      castling: true,
+      check: clean.endsWith('+'),
+      checkmate: clean.endsWith('#'),
+      from: undefined,
+      long: false,
       piece: 'king',
       promotion: undefined,
-      rank: undefined,
       to: undefined,
     };
 
@@ -187,7 +184,7 @@ function parse(san: string, position?: Position): SanMove | Move {
     checkString,
   ] = match;
 
-  const piece: PieceType = pieceString
+  const piece: Piece = pieceString
     ? (PIECE_LETTERS[pieceString] ?? 'pawn')
     : 'pawn';
   const file =
@@ -204,21 +201,23 @@ function parse(san: string, position?: Position): SanMove | Move {
     promoString && PROMOTION_LETTERS[promoString]
       ? PROMOTION_LETTERS[promoString]
       : undefined;
-  const check =
-    checkString === '#'
-      ? 'checkmate'
-      : checkString === '+'
-        ? 'check'
-        : undefined;
+  const check = checkString === '+';
+  const checkmate = checkString === '#';
 
-  const sanMove: SanMove = {
+  const from: Disambiguation | undefined =
+    file !== undefined && rank !== undefined
+      ? (`${file}${rank}` as Square)
+      : (file ?? rank ?? undefined);
+
+  const sanMove: SAN = {
     capture,
-    castle: undefined,
+    castling: false,
     check,
-    file,
+    checkmate,
+    from,
+    long: false,
     piece,
     promotion,
-    rank,
     to,
   };
 
@@ -233,20 +232,19 @@ function parse(san: string, position?: Position): SanMove | Move {
 // resolve()
 // ---------------------------------------------------------------------------
 
-function resolve(move: SanMove, position: Position): Move {
+function resolve(move: SAN, position: Position): Move {
   // Castling
-  if (move.castle !== undefined) {
+  if (move.castling) {
     const backRank = position.turn === 'white' ? '1' : '8';
     const from = `e${backRank}` as Square;
-    const to =
-      move.castle === 'kingside'
-        ? (`g${backRank}` as Square)
-        : (`c${backRank}` as Square);
+    const to = move.long
+      ? (`c${backRank}` as Square)
+      : (`g${backRank}` as Square);
     return { from, promotion: undefined, to };
   }
 
   if (move.to === undefined) {
-    throw new RangeError('SanMove has no target square');
+    throw new RangeError('SAN has no target square');
   }
 
   const candidates: Square[] = [];
@@ -255,11 +253,25 @@ function resolve(move: SanMove, position: Position): Move {
     if (piece.type !== move.piece) {
       continue;
     }
-    if (move.file !== undefined && square[0] !== move.file) {
-      continue;
-    }
-    if (move.rank !== undefined && square[1] !== move.rank) {
-      continue;
+
+    // Apply disambiguation filter
+    if (move.from !== undefined) {
+      if (move.from.length === 2) {
+        // Full square disambiguation
+        if (square !== move.from) {
+          continue;
+        }
+      } else if (FILES_SET.has(move.from)) {
+        // File disambiguation
+        if (square[0] !== move.from) {
+          continue;
+        }
+      } else {
+        // Rank disambiguation
+        if (square[1] !== move.from) {
+          continue;
+        }
+      }
     }
 
     // Check if piece can reach the target square
@@ -303,7 +315,7 @@ function resolve(move: SanMove, position: Position): Move {
 // stringify()
 // ---------------------------------------------------------------------------
 
-const PIECE_TO_LETTER: Record<PieceType, string> = {
+const PIECE_TO_LETTER: Record<Piece, string> = {
   bishop: 'B',
   king: 'K',
   knight: 'N',
@@ -312,7 +324,7 @@ const PIECE_TO_LETTER: Record<PieceType, string> = {
   rook: 'R',
 };
 
-const PROMOTION_TO_LETTER: Record<PromotionPieceType, string> = {
+const PROMOTION_TO_LETTER: Record<PromotionPiece, string> = {
   bishop: 'B',
   knight: 'N',
   queen: 'Q',
@@ -421,6 +433,6 @@ function isCheckmate(position: Position): boolean {
   return true;
 }
 
-export type { Move, PromotionPieceType, SanMove };
-export type { Position } from '@echecs/position';
+export type { Disambiguation, Move, Piece, PromotionPiece, SAN };
+export type { File, Position, Rank, Square } from '@echecs/position';
 export { parse, resolve, stringify };

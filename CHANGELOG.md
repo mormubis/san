@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com), and this
 project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.0.0] - 2026-04-26
+
+### Changed
+
+- Renamed `SanMove` to `SAN`.
+- Renamed `PromotionPieceType` to `PromotionPiece`.
+- Merged `file` + `rank` fields into `from: Disambiguation | undefined` where
+  `Disambiguation = File | Rank | Square`.
+- Replaced `castle: 'kingside' | 'queenside' | undefined` with
+  `castling: boolean` + `long: boolean`.
+- Replaced `check: 'check' | 'checkmate' | undefined` with `check: boolean` +
+  `checkmate: boolean`.
+
+### Added
+
+- Exported `Piece` type
+  (`'bishop' | 'king' | 'knight' | 'pawn' | 'queen' | 'rook'`).
+- Exported `Disambiguation` type (`File | Rank | Square`).
+- Re-exported `File`, `Rank`, `Square` from `@echecs/position`.
+
 ## [2.0.3] - 2026-04-26
 
 ### Fixed
