@@ -1,61 +1,21 @@
-import parseFen from '@echecs/fen';
+import { parse as parseFen } from '@echecs/fen';
 import { Position, STARTING_POSITION } from '@echecs/position';
 import { describe, expect, it } from 'vitest';
 
 import { parse, resolve, stringify } from '../index.js';
 
-import type { CastlingRights, Color, Piece, Square } from '@echecs/position';
-
 const START = new Position(STARTING_POSITION);
 
-// Helper: parseFen returns the old type conventions ('w'/'b', single-letter
-// piece types, flat castling rights). Bridge to Position v3 types.
-const COLOR_MAP: Record<string, Color> = { b: 'black', w: 'white' };
-const PIECE_MAP: Record<string, Piece['type']> = {
-  b: 'bishop',
-  k: 'king',
-  n: 'knight',
-  p: 'pawn',
-  q: 'queen',
-  r: 'rook',
-};
-
 function toPosition(fen: string): Position {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const raw = parseFen(fen) as any;
+  const pos = parseFen(fen);
 
-  // Convert board map from old types to new types
-  const board = new Map<Square, Piece>();
-  for (const [square, piece] of raw.board) {
-    board.set(
-      square as Square,
-      {
-        color: COLOR_MAP[piece.color] ?? 'white',
-        type: PIECE_MAP[piece.type] ?? 'pawn',
-      } as Piece,
-    );
+  if (pos === null) {
+    throw new RangeError(`Invalid FEN: "${fen}"`);
   }
 
-  // Convert castling rights from flat to nested
-  const castlingRights: CastlingRights = {
-    black: {
-      king: raw.castlingRights?.bK ?? false,
-      queen: raw.castlingRights?.bQ ?? false,
-    },
-    white: {
-      king: raw.castlingRights?.wK ?? false,
-      queen: raw.castlingRights?.wQ ?? false,
-    },
-  };
+  const { board, castlingRights, enPassantSquare, turn } = pos;
 
-  // Convert turn
-  const turn: Color = COLOR_MAP[raw.turn] ?? 'white';
-
-  return new Position(board, {
-    castlingRights,
-    enPassantSquare: raw.enPassantSquare,
-    turn,
-  });
+  return new Position(board, { castlingRights, enPassantSquare, turn });
 }
 
 // ---------------------------------------------------------------------------
