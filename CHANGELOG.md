@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com), and this
 project adheres to [Semantic Versioning](https://semver.org).
 
+## [2.0.3] - 2026-04-26
+
+### Fixed
+
+- Handled rook movement in `applyMoveToBoard` for castling — `stringify` now
+  produces correct board state when detecting check/checkmate after `O-O` and
+  `O-O-O`.
+
 ## [2.0.2] - 2026-04-09
 
 ### Changed
