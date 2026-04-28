@@ -6,7 +6,7 @@
   "description": "Parse, resolve, and stringify SAN (Standard Algebraic Notation) chess moves. Strict TypeScript.",
   "devDependencies": {
     "@echecs/fen": "^2.1.1",
-    "@echecs/position": "^3.0.3",
+    "@echecs/position": "^3.1.0",
     "@eslint/js": "^10.0.1",
     "@typescript-eslint/parser": "^8.57.0",
     "@vitest/coverage-v8": "^4.1.0",
