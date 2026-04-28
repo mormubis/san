@@ -2,8 +2,10 @@ import type {
   Piece as BoardPiece,
   Color,
   File,
+  Move,
   PieceType,
   Position,
+  PromotionPieceType,
   Rank,
   Square,
 } from '@echecs/position';
@@ -16,13 +18,7 @@ type Disambiguation = File | Rank | Square;
 
 type Piece = PieceType;
 
-type PromotionPiece = 'bishop' | 'knight' | 'queen' | 'rook';
-
-interface Move {
-  from: Square;
-  promotion?: PromotionPiece;
-  to: Square;
-}
+type PromotionPiece = PromotionPieceType;
 
 interface SAN {
   capture: boolean;
@@ -433,6 +429,13 @@ function isCheckmate(position: Position): boolean {
   return true;
 }
 
-export type { Disambiguation, Move, Piece, PromotionPiece, SAN };
-export type { File, Position, Rank, Square } from '@echecs/position';
+export type { Disambiguation, Piece, PromotionPiece, SAN };
+export type {
+  File,
+  Move,
+  Position,
+  PromotionPieceType,
+  Rank,
+  Square,
+} from '@echecs/position';
 export { parse, resolve, stringify };

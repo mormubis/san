@@ -12,8 +12,8 @@ importers:
         specifier: ^2.1.1
         version: 2.1.1
       '@echecs/position':
-        specifier: ^3.0.3
-        version: 3.0.5
+        specifier: ^3.1.0
+        version: 3.1.0
       '@eslint/js':
         specifier: ^10.0.1
         version: 10.0.1(eslint@10.2.1)
@@ -114,8 +114,8 @@ packages:
     resolution: {integrity: sha512-VVgSn9llXDlHmNJ3J27dLnkFEWPzpa0iZCr8ZfUhpOuLBd2Yan/6+aa/mCy3RD9qbe/KgZuh8Ljw5j1PlemFFw==}
     engines: {node: '>=20'}
 
-  '@echecs/position@3.0.5':
-    resolution: {integrity: sha512-YUkBF/yrIebHABZPebRHsIZGhHT6unk9WwxVE98AvoeTYfAAg+8SjpyjLstKxYqvBxyWP6SEIFj0Ad6p5zIH3Q==}
+  '@echecs/position@3.1.0':
+    resolution: {integrity: sha512-NjyPnbq4NaNfhbEtFTW61/qKLsR+BkFeus9Z/RIaHEJI7Kr0WWkjyKoU3t6FNUjFr5m+QkjV2jo6vzfElpS5hw==}
     engines: {node: '>=20'}
 
   '@echecs/zobrist@1.0.2':
@@ -1318,8 +1318,8 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
-  postcss@8.5.10:
-    resolution: {integrity: sha512-pMMHxBOZKFU6HgAZ4eyGnwXF/EvPGGqUr0MnZ5+99485wwW41kW91A4LOGxSHhgugZmSChL5AlElNdwlNgcnLQ==}
+  postcss@8.5.12:
+    resolution: {integrity: sha512-W62t/Se6rA0Az3DfCL0AqJwXuKwBeYg6nOaIgzP+xZ7N5BFCI7DYi1qs6ygUYT6rvfi6t9k65UMLJC+PHZpDAA==}
     engines: {node: ^10 || ^12 || >=14}
 
   prelude-ls@1.2.1:
@@ -1721,7 +1721,7 @@ snapshots:
 
   '@echecs/fen@2.1.1': {}
 
-  '@echecs/position@3.0.5':
+  '@echecs/position@3.1.0':
     dependencies:
       '@echecs/zobrist': 1.0.2
 
@@ -2765,7 +2765,7 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  postcss@8.5.10:
+  postcss@8.5.12:
     dependencies:
       nanoid: 3.3.11
       picocolors: 1.1.1
@@ -3042,7 +3042,7 @@ snapshots:
       '@oxc-project/runtime': 0.115.0
       lightningcss: 1.32.0
       picomatch: 4.0.4
-      postcss: 8.5.10
+      postcss: 8.5.12
       rolldown: 1.0.0-rc.9(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
       tinyglobby: 0.2.16
     optionalDependencies:
