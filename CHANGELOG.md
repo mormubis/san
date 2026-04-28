@@ -5,6 +5,23 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com), and this
 project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.1.0] - 2026-04-28
+
+### Added
+
+- Re-exported `Move` and `PromotionPieceType` from `@echecs/position`.
+- `PromotionPiece` remains as a type alias for backward compatibility.
+
+### Changed
+
+- `Move` and `PromotionPiece` are now imported from `@echecs/position` instead
+  of being defined locally.
+
+### Fixed
+
+- Moved `@echecs/position` to `devDependencies` — it was incorrectly listed as a
+  regular dependency.
+
 ## [3.0.0] - 2026-04-26
 
 ### Changed

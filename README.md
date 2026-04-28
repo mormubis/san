@@ -30,10 +30,10 @@ const san = stringify(move, position);
 
 ## API
 
-### `parse(san: string): SanMove`
+### `parse(san: string): SAN`
 
-Parses a SAN string and returns a `SanMove` describing the move's syntax. Does
-not require a position. Throws `RangeError` for empty or invalid input.
+Parses a SAN string and returns a `SAN` object describing the move's syntax.
+Does not require a position. Throws `RangeError` for empty or invalid input.
 
 ### `parse(san: string, position: Position): Move`
 
@@ -41,9 +41,9 @@ Parses and resolves a SAN string against a position in one call. Equivalent to
 calling `parse` then `resolve`. Throws `RangeError` for empty, invalid, or
 illegal input.
 
-### `resolve(move: SanMove, position: Position): Move`
+### `resolve(move: SAN, position: Position): Move`
 
-Finds the source square for a `SanMove` in the given position. Throws
+Finds the source square for a `SAN` move in the given position. Throws
 `RangeError` if no legal move matches or if the move is ambiguous.
 
 ### `stringify(move: Move, position: Position): string`
@@ -55,22 +55,24 @@ disambiguation, capture marker, check, and checkmate symbols. Throws
 ## Types
 
 ```typescript
-interface SanMove {
+interface SAN {
   capture: boolean;
-  castle: 'kingside' | 'queenside' | undefined;
-  check: 'check' | 'checkmate' | undefined;
-  file: File | undefined;
-  piece: PieceType;
-  promotion: PromotionPieceType | undefined;
-  rank: Rank | undefined;
+  castling: boolean;
+  check: boolean;
+  checkmate: boolean;
+  from: Disambiguation | undefined;
+  long: boolean;
+  piece: Piece;
+  promotion: PromotionPiece | undefined;
   to: Square | undefined;
 }
 ```
 
-`file` and `rank` are the disambiguation hints from the SAN string, not the
-destination square. `to` is `undefined` for castling moves.
+`from` is the disambiguation hint from the SAN string (a file, rank, or full
+square), not the origin square. `to` is `undefined` for castling moves.
 
-`Move` is defined locally in `@echecs/san`:
+`Move` and `PromotionPieceType` are re-exported from `@echecs/position`.
+`PromotionPiece` is an alias for `PromotionPieceType`.
 
 ```typescript
 interface Move {
@@ -80,11 +82,8 @@ interface Move {
 }
 ```
 
-`Position` is re-exported from `@echecs/position` for convenience.
-`PromotionPieceType` is the union of piece types a pawn can promote to:
-
 ```typescript
-import type { Move, Position, PromotionPieceType, SanMove } from '@echecs/san';
+import type { Move, Position, PromotionPieceType, SAN } from '@echecs/san';
 ```
 
 ## Errors
