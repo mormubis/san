@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com), and this
 project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.1.2] - 2026-05-01
+
+### Fixed
+
+- Widened `@echecs/position` peer dependency range from `^3.0.0` to
+  `^3.0.0 || ^4.0.0` so consumers on position 4.x no longer get unmet peer
+  warnings.
+
+### Changed
+
+- Bumped `@echecs/position` dev dependency from `^3.1.0` to `^4.0.0`.
+
 ## [3.1.1] - 2026-05-01
 
 ### Fixed

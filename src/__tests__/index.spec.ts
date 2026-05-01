@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import { parse, resolve, stringify } from '../index.js';
 
-const START = new Position(STARTING_POSITION);
+const START = new Position({ board: STARTING_POSITION });
 
 function toPosition(fen: string): Position {
   const pos = parseFen(fen);
@@ -15,7 +15,7 @@ function toPosition(fen: string): Position {
 
   const { board, castlingRights, enPassantSquare, turn } = pos;
 
-  return new Position(board, { castlingRights, enPassantSquare, turn });
+  return new Position({ board, castlingRights, enPassantSquare, turn });
 }
 
 // ---------------------------------------------------------------------------
