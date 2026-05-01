@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@echecs/fen':
-        specifier: ^2.1.1
-        version: 2.1.1
+        specifier: ^3.0.0
+        version: 3.0.0(@echecs/position@4.0.0)
       '@echecs/position':
         specifier: ^4.0.0
         version: 4.0.0
@@ -110,9 +110,11 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
-  '@echecs/fen@2.1.1':
-    resolution: {integrity: sha512-VVgSn9llXDlHmNJ3J27dLnkFEWPzpa0iZCr8ZfUhpOuLBd2Yan/6+aa/mCy3RD9qbe/KgZuh8Ljw5j1PlemFFw==}
+  '@echecs/fen@3.0.0':
+    resolution: {integrity: sha512-cJ423Pa7Mtb8Va83AQv5fRA/34p4zy+NydyK1CGHXxRyTOCprJe0CGmRyL4zbFE25ezjpsXn7Uw81HdfSC4+Kg==}
     engines: {node: '>=20'}
+    peerDependencies:
+      '@echecs/position': ^4.0.0
 
   '@echecs/position@4.0.0':
     resolution: {integrity: sha512-D9z+d13owPg/EEyEp2nfqhE8gbDCdWvsoULstW4bRrums0J/i3Nxc9yz7XADe8dFhV4nqAYCanrZBk9Sr6aIIw==}
@@ -1294,8 +1296,8 @@ packages:
   ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
 
-  nanoid@3.3.11:
-    resolution: {integrity: sha512-N8SpfPUnUp1bK+PMYW8qSWdl9U+wwNWI4QKxOYDy9JAro3WMX7p2OeVRF9v+347pnakNevPmiHhNmZ2HbFA76w==}
+  nanoid@3.3.12:
+    resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -1355,8 +1357,8 @@ packages:
     resolution: {integrity: sha512-Nc3IT5yHzflTfbjgqWcCPpo7DaKy4FnpB0l/zCAW0Tc7jxAiuqSxHasntB3D7887LSrA93kDJ9IXovxJYxyLCA==}
     engines: {node: '>=4'}
 
-  postcss@8.5.12:
-    resolution: {integrity: sha512-W62t/Se6rA0Az3DfCL0AqJwXuKwBeYg6nOaIgzP+xZ7N5BFCI7DYi1qs6ygUYT6rvfi6t9k65UMLJC+PHZpDAA==}
+  postcss@8.5.13:
+    resolution: {integrity: sha512-qif0+jGGZoLWdHey3UFHHWP0H7Gbmsk8T5VEqyYFbWqPr1XqvLGBbk/sl8V5exGmcYJklJOhOQq1pV9IcsiFag==}
     engines: {node: ^10 || ^12 || >=14}
 
   prelude-ls@1.2.1:
@@ -1756,7 +1758,9 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
-  '@echecs/fen@2.1.1': {}
+  '@echecs/fen@3.0.0(@echecs/position@4.0.0)':
+    dependencies:
+      '@echecs/position': 4.0.0
 
   '@echecs/position@4.0.0':
     dependencies:
@@ -2808,7 +2812,7 @@ snapshots:
 
   ms@2.1.3: {}
 
-  nanoid@3.3.11: {}
+  nanoid@3.3.12: {}
 
   napi-postinstall@0.3.4: {}
 
@@ -2853,9 +2857,9 @@ snapshots:
 
   pluralize@8.0.0: {}
 
-  postcss@8.5.12:
+  postcss@8.5.13:
     dependencies:
-      nanoid: 3.3.11
+      nanoid: 3.3.12
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
@@ -3130,7 +3134,7 @@ snapshots:
       '@oxc-project/runtime': 0.115.0
       lightningcss: 1.32.0
       picomatch: 4.0.4
-      postcss: 8.5.12
+      postcss: 8.5.13
       rolldown: 1.0.0-rc.9(@emnapi/core@1.10.0)(@emnapi/runtime@1.10.0)
       tinyglobby: 0.2.16
     optionalDependencies:
