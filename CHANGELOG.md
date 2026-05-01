@@ -5,6 +5,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com), and this
 project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.1.3] - 2026-05-01
+
+### Fixed
+
+- Narrowed `@echecs/position` peer dependency from `^3.0.0 || ^4.0.0` to
+  `^4.0.0` — the published `.d.ts` imports types that only exist in v4, so v3
+  was already broken at type-check time.
+
 ## [3.1.2] - 2026-05-01
 
 ### Fixed
