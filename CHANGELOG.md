@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com), and this
 project adheres to [Semantic Versioning](https://semver.org).
 
+## [3.1.1] - 2026-05-01
+
+### Fixed
+
+- Added `@echecs/position` as a `peerDependency` to avoid nominal type conflicts
+  when consumers have their own copy of `Position` with `#private` fields.
+
 ## [3.1.0] - 2026-04-28
 
 ### Added
