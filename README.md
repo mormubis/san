@@ -1,5 +1,7 @@
 # @echecs/san
 
+[![Spec](https://img.shields.io/badge/Spec-FIDE-green.svg)](SPEC.md)
+
 Parse, resolve, and stringify SAN (Standard Algebraic Notation) chess moves.
 Strict TypeScript. Implements the notation defined in
 [FIDE Laws of Chess, Appendix C](https://handbook.fide.com/chapter/E012023).
